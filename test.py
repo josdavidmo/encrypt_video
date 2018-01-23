@@ -7,22 +7,11 @@ while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
 
-    # Our operations on the frame come here
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    heigth = np.random.randint(len(gray), size=len(gray))
-    width = np.random.randint(len(gray[0]), size=len(gray[0]))
-
-    gray = np.transpose(gray)
-    for i in range(len(width)):
-        gray[i] = np.roll(gray[i], width[i], axis=0)
-    gray = np.transpose(gray)
-
-    for i in range(len(heigth)):
-        gray[i] = np.roll(gray[i], heigth[i], axis=0)
+    blue, green, red = cv2.split(frame)
 
     # Display the resulting frame
-    cv2.imshow('frame', gray)
+    cv2.imshow('frame', red)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
