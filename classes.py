@@ -58,34 +58,33 @@ class Lorenz(Attractor):
 class RungeKutta4:
 
     def __init__(self, attractor):
-        self.h = 0.01
         self.attractor = attractor
 
-    def solve(self, x, y, z, t):
-        k1 = self.h * self.attractor.get_x(x, y, z, t)
-        l1 = self.h * self.attractor.get_y(x, y, z, t)
-        m1 = self.h * self.attractor.get_z(x, y, z, t)
-        k2 = self.h * \
+    def solve(self, x, y, z, t, h):
+        k1 = h * self.attractor.get_x(x, y, z, t)
+        l1 = h * self.attractor.get_y(x, y, z, t)
+        m1 = h * self.attractor.get_z(x, y, z, t)
+        k2 = h * \
             self.attractor.get_x(x + k1 / 2, y + l1 / 2,
-                                 z + m1 / 2, t + self.h / 2)
-        l2 = self.h * \
+                                 z + m1 / 2, t + h / 2)
+        l2 = h * \
             self.attractor.get_y(x + k1 / 2, y + l1 / 2,
-                                 z + m1 / 2, t + self.h / 2)
-        m2 = self.h * \
+                                 z + m1 / 2, t + h / 2)
+        m2 = h * \
             self.attractor.get_z(x + k1 / 2, y + l1 / 2,
-                                 z + m1 / 2, t + self.h / 2)
-        k3 = self.h * \
+                                 z + m1 / 2, t + h / 2)
+        k3 = h * \
             self.attractor.get_x(x + k2 / 2, y + l2 / 2,
-                                 z + m2 / 2, t + self.h / 2)
-        l3 = self.h * \
+                                 z + m2 / 2, t + h / 2)
+        l3 = h * \
             self.attractor.get_y(x + k2 / 2, y + l2 / 2,
-                                 z + m2 / 2, t + self.h / 2)
-        m3 = self.h * \
+                                 z + m2 / 2, t + h / 2)
+        m3 = h * \
             self.attractor.get_z(x + k2 / 2, y + l2 / 2,
-                                 z + m2 / 2, t + self.h / 2)
-        k4 = self.h * self.attractor.get_x(x + k3, y + l3, z + m3, t + self.h)
-        l4 = self.h * self.attractor.get_y(x + k3, y + l3, z + m3, t + self.h)
-        m4 = self.h * self.attractor.get_z(x + k3, y + l3, z + m3, t + self.h)
+                                 z + m2 / 2, t + h / 2)
+        k4 = h * self.attractor.get_x(x + k3, y + l3, z + m3, t + h)
+        l4 = h * self.attractor.get_y(x + k3, y + l3, z + m3, t + h)
+        m4 = h * self.attractor.get_z(x + k3, y + l3, z + m3, t + h)
         xr = (k1 + 2 * k2 + 2 * k3 + k4) / 6
         yr = (l1 + 2 * l2 + 2 * l3 + l4) / 6
         zr = (m1 + 2 * m2 + 2 * m3 + m4) / 6
@@ -96,9 +95,9 @@ class Protocolo:
 
     def __init__(self, attractor):
         self.attractor = attractor
-        self.rj4 = RungeKutta4(attractor)
+        self.rk4 = RungeKutta4(attractor)
 
-    def get_sequence(self, length, h=0.001):
+    def get_sequence(self, length, h=0.01):
         sequence = []
         x = self.attractor.get_domain_x()
         y = self.attractor.get_domain_y()
@@ -108,7 +107,8 @@ class Protocolo:
         t_i = 0
         t = t_i
         while(t < t_f):
-            sequence_i += self.rj4.solve(x, y, z, t)
+            x, y, z = sequence_i
+            sequence_i = sequence_i + self.rk4.solve(x, y, z, t, h)
             sequence.append(sequence_i)
             t += h
         self.x_0 = sequence_i[0]
@@ -116,20 +116,21 @@ class Protocolo:
         self.z_0 = sequence_i[2]
         return sequence
 
-    def synchronize(self, sequence, h=0.001):
+    def synchronize(self, sequence, h=0.01):
         x = self.attractor.get_domain_x()
         y = self.attractor.get_domain_y()
         z = self.attractor.get_domain_z()
         sequence_slave = np.array([x, y, z])
-        length = len(sequence)
         t_f = len(sequence)
         t_i = 0
         t = t_i
         for sequence_master in sequence:
-            sequence_slave += self.rk4.solve(xr, y, zr, t)
+            x, y, z = sequence_slave
+            sequence_slave = sequence_slave + self.rk4.solve(x, y, z, t, h)
             sequence_slave[1] = sequence_master[1]
             t += h
-            if np.array_equal(sequence_master, sequence_slave) or t > t_f:
+            if np.array_equal(sequence_master, sequence_slave) and t < t_f:
+                print t
                 self.x_0 = sequence_slave[0]
                 self.y_0 = sequence_slave[1]
                 self.z_0 = sequence_slave[2]
