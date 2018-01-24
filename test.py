@@ -1,5 +1,5 @@
 from classes import Lorenz
-from classes import Protocolo
+from classes import Protocol
 import numpy as np
 import cv2
 
@@ -8,8 +8,8 @@ cap = cv2.VideoCapture(0)
 master = Lorenz()
 slave = Lorenz()
 
-sender = Protocolo(master)
-receiver = Protocolo(slave)
+sender = Protocol(master)
+receiver = Protocol(slave)
 
 key = sender.get_sequence(500, 0.1)
 receiver.synchronize(key, 0.1)
@@ -19,10 +19,10 @@ while(True):
     ret, frame = cap.read()
 
 
-    blue, green, red = cv2.split(frame)
-
+    frame = sender.encrypt(frame)
+    # frame = receiver.decrypt(frame)
     # Display the resulting frame
-    cv2.imshow('frame', red)
+    cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
