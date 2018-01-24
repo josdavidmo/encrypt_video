@@ -135,3 +135,31 @@ class Protocolo:
                 self.z_0 = sequence_slave[2]
                 return True
         return False
+
+    def permute(self,matrix,sequence_height,sequence_width,code):
+        b,g,r = cv2.split(matrix)
+        if code == 1:
+            b,g,r = [np.transpose(b),np.transpose(g),np.transpose(r)]
+            make_roll(b,g,r,sequence_width,code)
+            b,g,r = [np.transpose(b),np.transpose(g),np.transpose(r)]
+            make_roll(b,g,r,sequence_height,code)
+            return cv2.merge([b,g,r])
+        else:
+            make_roll(b,g,r,sequence_height,code)
+            b,g,r = [np.transpose(b),np.transpose(g),np.transpose(r)]
+            make_roll(b,g,r,sequence_width,code)
+            b,g,r = [np.transpose(b),np.transpose(g),np.transpose(r)]
+            return cv2.merge([b,g,r])
+
+    def make_roll(b,g,r,sequence,direction):
+        for i in range(len(sequence)):
+            b[i] = np.roll(b[i], sequence[i]*direction, axis=0)
+            g[i] = np.roll(g[i], sequence[i]*direction, axis=0)
+            r[i] = np.roll(r[i], sequence[i]*direction, axis=0)
+
+    def difusion(self,matrix,sequence_x,sequence_y,sequence_z,code):
+        b,g,r = cv2.split(matrix)
+        b = b + np.repeat(sequence_x[np.newaxis].T,len(matrix[0]),axis=1)
+        g = g + np.repeat(sequence_y[np.newaxis].T,len(matrix[0]),axis=1)
+        r = r + np.repeat(sequence_z[np.newaxis].T,len(matrix[0]),axis=1)
+        return cv2.merge([b,g,r])
