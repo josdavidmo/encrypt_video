@@ -91,7 +91,7 @@ class RungeKutta4:
         return np.array([xr, yr, zr])
 
 
-class Protocolo:
+class Protocol:
 
     def __init__(self, attractor):
         self.attractor = attractor
@@ -136,3 +136,7 @@ class Protocolo:
                 self.z_0 = sequence_slave[2]
                 return True
         return False
+
+    def encrypt(self, img):
+        sequence_heigth = self.get_sequence(len(img))
+        sequence_width = self.get_sequence(len(img[0]))
