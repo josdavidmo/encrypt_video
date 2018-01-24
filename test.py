@@ -1,7 +1,18 @@
+from classes import Lorenz
+from classes import Protocolo
 import numpy as np
 import cv2
 
 cap = cv2.VideoCapture(0)
+
+master = Lorenz()
+slave = Lorenz()
+
+sender = Protocolo(master)
+receiver = Protocolo(slave)
+
+key = sender.get_sequence(500, 0.1)
+receiver.synchronize(key, 0.1)
 
 while(True):
     # Capture frame-by-frame
