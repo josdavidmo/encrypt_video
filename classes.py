@@ -12,6 +12,9 @@ class Attractor:
         self.y_0 = 0
         self.z_0 = 0
 
+    def __str__(self):
+        return "(%s, %s, %s)" % (self.x_0,self.y_0,self.z_0)
+
     @abstractmethod
     def get_x(self, x, y, z, t): pass
 
@@ -33,6 +36,7 @@ class Attractor:
 
 class Lorenz(Attractor):
     def __init__(self):
+        Attractor.__init__(self)
         self.a = 10
         self.b = 28
         self.c = 8 / 3
@@ -98,11 +102,16 @@ class Protocol:
         self.attractor = attractor
         self.rk4 = RungeKutta4(attractor)
 
-    def get_sequence(self, length, h=1):
+    def get_sequence(self, length, h=0.01):
         sequence = []
-        x = self.attractor.get_domain_x()
-        y = self.attractor.get_domain_y()
-        z = self.attractor.get_domain_z()
+        if self.attractor.x_0 == 0 and self.attractor.y_0 == 0 and self.attractor.z_0 == 0:
+            x = self.attractor.get_domain_x()
+            y = self.attractor.get_domain_y()
+            z = self.attractor.get_domain_z()
+        else:
+            x = self.attractor.x_0
+            y = self.attractor.y_0
+            z = self.attractor.z_0
         sequence_i = np.array([x, y, z])
         t_f = length
         t_i = 0
@@ -112,9 +121,10 @@ class Protocol:
             sequence_i = sequence_i + self.rk4.solve(x, y, z, t, h)
             sequence.append(sequence_i)
             t += h
-        self.x_0 = sequence_i[0]
-        self.y_0 = sequence_i[1]
-        self.z_0 = sequence_i[2]
+        self.attractor.x_0 = sequence_i[0]
+        self.attractor.y_0 = sequence_i[1]
+        self.attractor.z_0 = sequence_i[2]
+        print self.attractor
         return np.array(sequence)
 
     def synchronize(self, sequence, h=0.01):
@@ -130,12 +140,11 @@ class Protocol:
             sequence_slave = sequence_slave + self.rk4.solve(x, y, z, t, h)
             sequence_slave[1] = sequence_master[1]
             t += h
-            if np.array_equal(sequence_master, sequence_slave) and t < t_f:
-                print t
-                self.x_0 = sequence_slave[0]
-                self.y_0 = sequence_slave[1]
-                self.z_0 = sequence_slave[2]
-                return True
+        if np.array_equal(sequence_master, sequence_slave):
+            self.attractor.x_0 = sequence_slave[0]
+            self.attractor.y_0 = sequence_slave[1]
+            self.attractor.z_0 = sequence_slave[2]
+            return True
         return False
 
     def permute(self,matrix,sequence_height,sequence_width,code):
@@ -167,21 +176,24 @@ class Protocol:
         return cv2.merge([b,g,r])
 
     def encrypt(self, img):
-        sequence = self.get_sequence(len(img))
-        sequence_x = sequence[:,0]
-        sequence_y = sequence[:,1]
-        sequence_z = sequence[:,2]
-        sequence_width = self.get_sequence(len(img[0]))
-        sequence_x_width = sequence_width[:,0]
-        img = self.difusion(img,sequence_x,sequence_y,sequence_z,1)
-        return self.permute(img,sequence_x,sequence_x_width,1)
+        sequence = self.get_sequence(len(img)+len(img[0]),1)
+        sequence_x = sequence[0:len(img)][:,0]
+        sequence_y = sequence[0:len(img)][:,1]
+        sequence_z = sequence[0:len(img)][:,2]
+        ##sequence_width = self.get_sequence(len(img[0]),1)
+        sequence_x_width = sequence[len(img):][:,0]
+        #img = self.difusion(img,sequence_x,sequence_y,sequence_z,1)
+        #img2 =  self.difusion(img1,sequence_x,sequence_y,sequence_z,-1)
+        img = self.permute(img,sequence_x,sequence_x_width,1)
+        #img = self.permute(img,sequence_x,sequence_x_width,-1)
+        return img
 
     def decrypt(self, img):
-        sequence = self.get_sequence(len(img))
-        sequence_x = sequence[:,0]
-        sequence_y = sequence[:,1]
-        sequence_z = sequence[:,2]
-        sequence_width = self.get_sequence(len(img[0]))
-        sequence_x_width = sequence_width[:,0]
-        img = self.difusion(img,sequence_x,sequence_y,sequence_z,-1)
+        sequence = self.get_sequence(len(img)+len(img[0]),1)
+        sequence_x = sequence[0:len(img)][:,0]
+        sequence_y = sequence[0:len(img)][:,1]
+        sequence_z = sequence[0:len(img)][:,2]
+        ##sequence_width = self.get_sequence(len(img[0]),1)
+        sequence_x_width = sequence[len(img):][:,0]
+        #img = self.difusion(img,sequence_x,sequence_y,sequence_z,-1)
         return self.permute(img,sequence_x,sequence_x_width,-1)

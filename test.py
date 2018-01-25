@@ -11,8 +11,11 @@ slave = Lorenz()
 sender = Protocol(master)
 receiver = Protocol(slave)
 
-key = sender.get_sequence(500, 0.1)
-receiver.synchronize(key, 0.1)
+key = sender.get_sequence(15)
+print receiver.synchronize(key)
+
+print sender.get_sequence(10,1)
+print receiver.get_sequence(10,1)
 
 while(True):
     # Capture frame-by-frame
@@ -20,7 +23,7 @@ while(True):
 
 
     frame = sender.encrypt(frame)
-    # frame = receiver.decrypt(frame)
+    frame = receiver.decrypt(frame)
     # Display the resulting frame
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
