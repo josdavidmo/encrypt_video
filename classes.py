@@ -13,7 +13,7 @@ class Attractor:
         self.z_0 = None
 
     def __str__(self):
-        return "(%s, %s, %s)" % (self.x_0,self.y_0,self.z_0)
+        return "(%s, %s, %s)" % (self.x_0, self.y_0, self.z_0)
 
     @abstractmethod
     def get_x(self, x, y, z, t): pass
@@ -104,7 +104,7 @@ class Protocol:
 
     def get_sequence(self, length, h=0.01):
         sequence = []
-        if self.attractor.x_0  and self.attractor.y_0  and self.attractor.z_0 :
+        if self.attractor.x_0 and self.attractor.y_0 and self.attractor.z_0:
             x = self.attractor.x_0
             y = self.attractor.y_0
             z = self.attractor.z_0
@@ -146,56 +146,57 @@ class Protocol:
             return True
         return False
 
-    def permute(self,matrix,sequence_height,sequence_width,code):
-        b,g,r = cv2.split(matrix)
+    def permute(self, matrix, sequence_height, sequence_width, code):
+        b, g, r = cv2.split(matrix)
         if code == 1:
-            b,g,r = [np.transpose(b),np.transpose(g),np.transpose(r)]
-            self.make_roll(b,g,r,sequence_width,code)
-            b,g,r = [np.transpose(b),np.transpose(g),np.transpose(r)]
-            self.make_roll(b,g,r,sequence_height,code)
-            return cv2.merge([b,g,r])
+            b, g, r = [np.transpose(b), np.transpose(g), np.transpose(r)]
+            self.make_roll(b, g, r, sequence_width, code)
+            b, g, r = [np.transpose(b), np.transpose(g), np.transpose(r)]
+            self.make_roll(b, g, r, sequence_height, code)
+            return cv2.merge([b, g, r])
         else:
-            self.make_roll(b,g,r,sequence_height,code)
-            b,g,r = [np.transpose(b),np.transpose(g),np.transpose(r)]
-            self.make_roll(b,g,r,sequence_width,code)
-            b,g,r = [np.transpose(b),np.transpose(g),np.transpose(r)]
-            return cv2.merge([b,g,r])
+            self.make_roll(b, g, r, sequence_height, code)
+            b, g, r = [np.transpose(b), np.transpose(g), np.transpose(r)]
+            self.make_roll(b, g, r, sequence_width, code)
+            b, g, r = [np.transpose(b), np.transpose(g), np.transpose(r)]
+            return cv2.merge([b, g, r])
 
-    def make_roll(self,b,g,r,sequence,direction):
+    def make_roll(self, b, g, r, sequence, direction):
         for i in range(len(sequence)):
-            b[i] = np.roll(b[i], int(sequence[i])*direction, axis=0)
-            g[i] = np.roll(g[i], int(sequence[i])*direction, axis=0)
-            r[i] = np.roll(r[i], int(sequence[i])*direction, axis=0)
+            b[i] = np.roll(b[i], int(sequence[i]) * direction, axis=0)
+            g[i] = np.roll(g[i], int(sequence[i]) * direction, axis=0)
+            r[i] = np.roll(r[i], int(sequence[i]) * direction, axis=0)
 
-    def difusion(self,matrix,sequence_x,sequence_y,sequence_z,code):
+    def difusion(self, matrix, sequence_x, sequence_y, sequence_z, code):
         #b,g,r = cv2.split(matrix)
-        matrix[:,:,0] = (matrix[:,:,0] + (code * np.repeat(sequence_x[np.newaxis].T,len(matrix[0]),axis=1)))%256
-        matrix[:,:,1] = (matrix[:,:,1] + (code * np.repeat(sequence_y[np.newaxis].T,len(matrix[0]),axis=1)))%256
-        matrix[:,:,2] = (matrix[:,:,2] + (code * np.repeat(sequence_z[np.newaxis].T,len(matrix[0]),axis=1)))%256
+        matrix[:, :, 0] = (
+            matrix[:, :, 0] + (code * np.repeat(sequence_x[np.newaxis].T, len(matrix[0]), axis=1))) % 256
+        matrix[:, :, 1] = (
+            matrix[:, :, 1] + (code * np.repeat(sequence_y[np.newaxis].T, len(matrix[0]), axis=1))) % 256
+        matrix[:, :, 2] = (
+            matrix[:, :, 2] + (code * np.repeat(sequence_z[np.newaxis].T, len(matrix[0]), axis=1))) % 256
         return matrix
 
     def encrypt(self, img):
         h = 0.01
-        length = (len(img)+len(img[0]))*h
-
-        sequence = np.rint(self.get_sequence(length,h)*10)
-        sequence_x = sequence[0:len(img)][:,0]
-        sequence_y = sequence[0:len(img)][:,1]
-        sequence_z = sequence[0:len(img)][:,2]
-        sequence_x_width = sequence[len(img)+1:][:,0]
-        img = self.difusion(img,sequence_x,sequence_y,sequence_z,1)
-        img = self.permute(img,sequence_x,sequence_x_width,1)
+        length = (len(img) + len(img[0])) * h
+        sequence = np.rint(self.get_sequence(length, h) * 300)
+        sequence_x = sequence[0:len(img)][:, 0]
+        sequence_y = sequence[0:len(img)][:, 1]
+        sequence_z = sequence[0:len(img)][:, 2]
+        sequence_x_width = sequence[len(img) + 1:][:, 0]
+        img = self.difusion(img, sequence_x, sequence_y, sequence_z, 1)
+        img = self.permute(img, sequence_x, sequence_x_width, 1)
         return img
 
     def decrypt(self, img):
         h = 0.01
-        length = (len(img)+len(img[0]))*h
-
-        sequence = np.rint(self.get_sequence(length,h)*10)
-        sequence_x = sequence[0:len(img)][:,0]
-        sequence_y = sequence[0:len(img)][:,1]
-        sequence_z = sequence[0:len(img)][:,2]
-        sequence_x_width = sequence[len(img)+1:][:,0]
-        img = self.permute(img,sequence_x,sequence_x_width,-1)
-        img = self.difusion(img,sequence_x,sequence_y,sequence_z,-1)
+        length = (len(img) + len(img[0])) * h
+        sequence = np.rint(self.get_sequence(length, h) * 300)
+        sequence_x = sequence[0:len(img)][:, 0]
+        sequence_y = sequence[0:len(img)][:, 1]
+        sequence_z = sequence[0:len(img)][:, 2]
+        sequence_x_width = sequence[len(img) + 1:][:, 0]
+        img = self.permute(img, sequence_x, sequence_x_width, -1)
+        img = self.difusion(img, sequence_x, sequence_y, sequence_z, -1)
         return img
