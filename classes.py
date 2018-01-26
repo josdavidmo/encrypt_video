@@ -169,40 +169,33 @@ class Protocol:
 
     def difusion(self,matrix,sequence_x,sequence_y,sequence_z,code):
         #b,g,r = cv2.split(matrix)
-        matrix = (matrix + (code * np.repeat(sequence_x[np.newaxis].T,len(matrix[0]),axis=1)))%256
-        #g = (g + (code * np.repeat(sequence_y[np.newaxis].T,len(matrix[0]),axis=1)))%100
-        #r = (r + (code * np.repeat(sequence_z[np.newaxis].T,len(matrix[0]),axis=1)))%100
-        #return cv2.merge([b,g,r])
+        matrix[:,:,0] = (matrix[:,:,0] + (code * np.repeat(sequence_x[np.newaxis].T,len(matrix[0]),axis=1)))%256
+        matrix[:,:,1] = (matrix[:,:,1] + (code * np.repeat(sequence_y[np.newaxis].T,len(matrix[0]),axis=1)))%256
+        matrix[:,:,2] = (matrix[:,:,2] + (code * np.repeat(sequence_z[np.newaxis].T,len(matrix[0]),axis=1)))%256
         return matrix
 
     def encrypt(self, img):
         h = 0.01
         length = (len(img)+len(img[0]))*h
 
-        sequence = np.rint(self.get_sequence(length,h)*10)
-        print "encrypt"
+        sequence = np.rint(self.get_sequence(length,h)*100)
         sequence_x = sequence[0:len(img)][:,0]
         sequence_y = sequence[0:len(img)][:,1]
         sequence_z = sequence[0:len(img)][:,2]
         sequence_x_width = sequence[len(img)+1:][:,0]
         img = self.difusion(img,sequence_x,sequence_y,sequence_z,1)
-        print img
-        #img = self.permute(img,sequence_x,sequence_x_width,1)
+        img = self.permute(img,sequence_x,sequence_x_width,1)
         return img
 
     def decrypt(self, img):
         h = 0.01
         length = (len(img)+len(img[0]))*h
 
-        sequence = np.rint(self.get_sequence(length,h)*10)
-        print "decrypt"
+        sequence = np.rint(self.get_sequence(length,h)*100)
         sequence_x = sequence[0:len(img)][:,0]
         sequence_y = sequence[0:len(img)][:,1]
         sequence_z = sequence[0:len(img)][:,2]
         sequence_x_width = sequence[len(img)+1:][:,0]
-
-        print sequence_x[0:20][2]
-        #img = self.permute(img,sequence_x,sequence_x_width,-1)
+        img = self.permute(img,sequence_x,sequence_x_width,-1)
         img = self.difusion(img,sequence_x,sequence_y,sequence_z,-1)
-        print img
         return img
