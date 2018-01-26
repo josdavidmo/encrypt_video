@@ -168,7 +168,6 @@ class Protocol:
             r[i] = np.roll(r[i], int(sequence[i]) * direction, axis=0)
 
     def difusion(self, matrix, sequence_x, sequence_y, sequence_z, code):
-        #b,g,r = cv2.split(matrix)
         matrix[:, :, 0] = (
             matrix[:, :, 0] + (code * np.repeat(sequence_x[np.newaxis].T, len(matrix[0]), axis=1))) % 256
         matrix[:, :, 1] = (
