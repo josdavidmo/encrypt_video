@@ -2,6 +2,7 @@ from classes import Lorenz
 from classes import Protocol
 import numpy as np
 import cv2
+import time
 
 cap = cv2.VideoCapture(0)
 
@@ -14,16 +15,16 @@ receiver = Protocol(slave)
 key = sender.get_sequence(25)
 print receiver.synchronize(key)
 
-#print sender.get_sequence(1)
-#print receiver.get_sequence(1)
-
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
 
-
+    start_time = time.time()
     frame = sender.encrypt(frame)
+    print("--- Encrypt %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
     frame = receiver.decrypt(frame)
+    print("--- Decrypt %s seconds ---" % (time.time() - start_time))
     # Display the resulting frame
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -1,7 +1,8 @@
-import numpy as np
-from abc import ABCMeta, abstractmethod
-import cv2
+from abc import ABCMeta
+from abc import abstractmethod
 from random import randint
+import cv2
+import numpy as np
 
 
 class Attractor:
