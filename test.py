@@ -22,7 +22,7 @@ while(True):
     ret, frame = cap.read()
 
 
-    fram = sender.encrypt(frame)
+    frame = sender.encrypt(frame)
     frame = receiver.decrypt(frame)
     # Display the resulting frame
     cv2.imshow('frame', frame)
