@@ -180,7 +180,7 @@ class Protocol:
     def encrypt(self, img):
         h = 0.01
         length = (len(img) + len(img[0])) * h
-        sequence = np.rint(self.get_sequence(length, h) * 300)
+        sequence = np.rint(self.get_sequence(length, h) * 100)
         sequence_x = sequence[0:len(img)][:, 0]
         sequence_y = sequence[0:len(img)][:, 1]
         sequence_z = sequence[0:len(img)][:, 2]
@@ -192,7 +192,7 @@ class Protocol:
     def decrypt(self, img):
         h = 0.01
         length = (len(img) + len(img[0])) * h
-        sequence = np.rint(self.get_sequence(length, h) * 300)
+        sequence = np.rint(self.get_sequence(length, h) * 100)
         sequence_x = sequence[0:len(img)][:, 0]
         sequence_y = sequence[0:len(img)][:, 1]
         sequence_z = sequence[0:len(img)][:, 2]
